@@ -1,8 +1,7 @@
 import discord
 
 from config import VERDANT_ROLE_ID, CRIMSON_FLAME_ROLE_ID, VOID_ROLE_ID, CELESTIAL_ROLE_ID
-
-from components.RoleButton import RoleButton
+from components.role_button import RoleButton
 
 class RoleLayout(discord.ui.LayoutView):    
     container1 = discord.ui.Container(
