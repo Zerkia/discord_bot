@@ -22,21 +22,32 @@ async def handle_role_toggle(
         )
         return
 
+    COLOR_ROLE_IDS = [rid for _, rid in COLOR_ROLE_DATA]
+    is_color_role = role_id in COLOR_ROLE_IDS
+
     if target_role in user.roles:
         await user.remove_roles(target_role)
         await interaction.response.send_message(remove_text, ephemeral=True)
         return
 
-    COLOR_ROLE_IDS = [role_id for _, role_id in COLOR_ROLE_DATA]
-    roles_to_remove = [r for r in user.roles if r.id in COLOR_ROLE_IDS]
-    if roles_to_remove:
-        await user.remove_roles(*roles_to_remove)
-        await user.add_roles(target_role)
-        await interaction.response.send_message(
-            f":arrows_counterclockwise: Changed role to {target_role.mention}",
-            ephemeral=True,
-        )
+    if is_color_role:
+        # Only allow one color role at a time
+        roles_to_remove = [r for r in user.roles if r.id in COLOR_ROLE_IDS]
+        if roles_to_remove:
+            await user.remove_roles(*roles_to_remove)
+            await user.add_roles(target_role)
+            await interaction.response.send_message(
+                f":arrows_counterclockwise: Changed role to {target_role.mention}",
+                ephemeral=True,
+            )
+        else:
+            await user.add_roles(target_role)
+            await interaction.response.send_message(
+                apply_text,
+                ephemeral=True,
+            )
         return
-
-    await user.add_roles(target_role)
-    await interaction.response.send_message(apply_text, ephemeral=True)
+    else:
+        # Non-color Roles: just add
+        await user.add_roles(target_role)
+        await interaction.response.send_message(apply_text, ephemeral=True)

@@ -51,6 +51,19 @@ async def color_roles(interaction: discord.Interaction):
 
     await interaction.channel.send(view=view)
 
+# Social Roles Command
+@bot.tree.command(name="social-roles", description="Shows list of social roles to choose from")
+async def social_roles(interaction: discord.Interaction):
+
+    await interaction.response.send_message(content="Social Roles Layout Set Up", ephemeral=True)
+    view = RoleLayout(
+        title="**Social Activities**",
+        description="Click to opt in for notifications based on which social activity you want to be notified about. You can always opt out later!",
+        role_data=roles.ROLE_GROUPS["social"]
+    )
+
+    await interaction.channel.send(view=view)
+
 async def main():
 
     async with bot:
