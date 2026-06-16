@@ -21,3 +21,8 @@ SOCIAL_ROLE_DATA = [
     ("🎬 Movies", MOVIES_ROLE_ID),
     ("🧩 AQWordle", AQWORDLE_ROLE_ID),
 ]
+
+ROLE_GROUPS = {
+    "color": COLOR_ROLE_DATA,
+    "social": SOCIAL_ROLE_DATA,
+}
