@@ -1,7 +1,6 @@
 import discord
 
-from config import COLOR_ROLES
-
+from roles import COLOR_ROLE_DATA
 
 async def handle_role_toggle(
     interaction: discord.Interaction,
@@ -28,7 +27,8 @@ async def handle_role_toggle(
         await interaction.response.send_message(remove_text, ephemeral=True)
         return
 
-    roles_to_remove = [r for r in user.roles if r.id in COLOR_ROLES]
+    COLOR_ROLE_IDS = [role_id for _, role_id in COLOR_ROLE_DATA]
+    roles_to_remove = [r for r in user.roles if r.id in COLOR_ROLE_IDS]
     if roles_to_remove:
         await user.remove_roles(*roles_to_remove)
         await user.add_roles(target_role)

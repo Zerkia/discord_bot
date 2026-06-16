@@ -3,7 +3,7 @@ import math
 import os
 
 import discord
-from role_layout import RoleLayout
+from color_roles_layout import ColorRolesLayout
 from discord import app_commands
 from discord.ext import commands, tasks
 
@@ -36,12 +36,12 @@ async def hello_world(interaction: discord.Interaction):
 
     await interaction.response.send_message(content="Hello, world!")
 
-@bot.tree.command(name="rolelayout", description="tests layout components")
-async def rolelayout(interaction: discord.Interaction):
+@bot.tree.command(name="color-roles", description="Shows list of color roles to choose from")
+async def color_roles(interaction: discord.Interaction):
 
-    await interaction.response.defer(ephemeral=True)
-    view = RoleLayout()
-    await interaction.followup.send(view=view)
+    await interaction.response.send_message(content="Color Roles Layout Set Up", ephemeral=True)
+    view = ColorRolesLayout()
+    await interaction.channel.send(view=view)
 
 async def main():
 
