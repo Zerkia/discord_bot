@@ -58,8 +58,23 @@ async def social_roles(interaction: discord.Interaction):
     await interaction.response.send_message(content="Social Roles Layout Set Up", ephemeral=True)
     view = RoleLayout(
         title="**Social Activities**",
+        subtitle="Want to socialize with the guildies? :oath:",
         description="Click to opt in for notifications based on which social activity you want to be notified about. You can always opt out later!",
         role_data=roles.ROLE_GROUPS["social"]
+    )
+
+    await interaction.channel.send(view=view)
+
+# Social Roles Command
+@bot.tree.command(name="notification-roles", description="Shows list of notification roles to choose from")
+async def notification_roles(interaction: discord.Interaction):
+
+    await interaction.response.send_message(content="Notification Roles Layout Set Up", ephemeral=True)
+    view = RoleLayout(
+        title="**Opt Out of Notifications**",
+        subtitle="Getting too many notifications?",
+        description="Just remove any roles you don't want notifications from. You can always add them back later!",
+        role_data=roles.ROLE_GROUPS["notification"]
     )
 
     await interaction.channel.send(view=view)
