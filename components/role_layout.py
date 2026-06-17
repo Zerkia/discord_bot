@@ -10,7 +10,8 @@ class RoleLayout(discord.ui.LayoutView):
         role_data: list[tuple[str, int]],
         subtitle: str | None = None,
     ):
-        super().__init__()
+        super().__init__(timeout=None)
+   
 
         components = [
             discord.ui.TextDisplay(content=title),
