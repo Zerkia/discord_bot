@@ -82,19 +82,50 @@ async def notification_roles(interaction: discord.Interaction):
     await interaction.channel.send(view=view)
 
 # Duel MastersCard Lookup Command
+# @bot.tree.command(name="card", description="Look up a Duel Masters card")
+# async def card(interaction: discord.Interaction, card_name: str):
+
+#     await interaction.response.defer()
+
+#     card = get_card(card_name)
+
+#     if card is None:
+#         await interaction.followup.send(
+#             f'Could not find a card named "{card_name}".'
+#         )
+#         return
+
+#     embed = create_card_embed(card)
+
+#     await interaction.followup.send(embed=embed)
+
 @bot.tree.command(name="card", description="Look up a Duel Masters card")
 async def card(interaction: discord.Interaction, card_name: str):
-  card = get_card(card_name)
+    print("1. Command received")
 
-  if card is None:
-      await interaction.response.send_message(
-          f'Could not find a card named "{card_name}".'
-      )
-      return
+    await interaction.response.defer()
+    print("2. Interaction deferred")
 
-  embed = create_card_embed(card)
+    card = get_card(card_name)
+    print("3. get_card() finished")
 
-  await interaction.response.send_message(embed=embed)
+    if card is None:
+        print("4. Card not found")
+
+        await interaction.followup.send(
+            f'Could not find a card named "{card_name}".'
+        )
+        return
+
+    print("4. Creating embed")
+
+    embed = create_card_embed(card)
+
+    print("5. Embed created")
+
+    await interaction.followup.send(embed=embed)
+
+    print("6. Response sent")
 
 async def main():
 

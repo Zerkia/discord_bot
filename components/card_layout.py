@@ -11,19 +11,19 @@ def create_card_embed(card):
     # Card information
     embed.add_field(
         name="Cost",
-        value=card["cost"] or "N/A",
+        value=card.get("cost") or "N/A",
         inline=True
     )
 
     embed.add_field(
         name="Race",
-        value=card["race"] or "N/A",
+        value=card.get("race") or "N/A",
         inline=True
     )
 
     embed.add_field(
         name="Power",
-        value=card["power"] or "N/A",
+        value=card.get("power") or "N/A",
         inline=True
     )
 

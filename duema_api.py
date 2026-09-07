@@ -1,38 +1,106 @@
+import html
 import re
 import requests
 
 API_URL = "https://duelmasters.fandom.com/api.php"
 
+def parse_cardtable(content):
+     fields = {}
+
+     current_field = None
+
+     for line in content.splitlines():
+         # Stop when we reach the end of the Cardtable
+         if line.strip() == "}}":
+             break
+
+         # Check whether this line starts a new Cardtable field
+         match = re.match(r"^\|\s*([^=]+?)\s*=\s*(.*)$", line)
+
+         if match:
+             current_field = match.group(1).strip()
+             fields[current_field] = match.group(2).strip()
+
+         elif current_field:
+             # This is a continuation of the previous field
+             fields[current_field] += "\n" + line.strip()
+
+     return fields
+
 def clean_wiki_text(text):
     if not text:
         return None
 
-    # Convert known Duel Masters templates into their English equivalents
-    template_replacements = {
-        "{{Double Breaker}}": "■ Double Breaker *(This creature breaks 2 shields)*",
-        "{{Triple Breaker}}": "■ Triple Breaker *(This creature breaks 3 shields)*",
-        "{{Blocker}}": "■ Blocker",
-        "{{Shield Trigger}}": "■ Shield Trigger",
-        "{{Speed Attacker}}": "■ Speed Attacker",
-        "{{Evolution}}": "■ Evolution",
-    }
-
-    for template, replacement in template_replacements.items():
-        text = text.replace(template, replacement)
+    # Remove category links
+    text = re.sub(
+        r"\[\[Category:[^\]]+\]\]",
+        "",
+        text,
+        flags=re.IGNORECASE
+    )
 
     # Convert [[Page|Displayed Text]] -> Displayed Text
-    text = re.sub(r"\[\[([^|\]]+)\|([^\]]+)\]\]", r"\2", text)
+    text = re.sub(
+        r"\[\[([^|\]]+)\|([^\]]+)\]\]",
+        r"\2",
+        text
+    )
 
     # Convert [[Page]] -> Page
-    text = re.sub(r"\[\[([^\]]+)\]\]", r"\1", text)
+    text = re.sub(
+        r"\[\[([^\]]+)\]\]",
+        r"\1",
+        text
+    )
 
-    # Remove simple templates such as {{Double Breaker}}
-    text = re.sub(r"\{\{[^{}]+\}\}", "", text)
+    # Convert wiki bold to Discord bold (priority over italics to prevent potential conflicts)
+    text = re.sub(
+        r"'''(.*?)'''",
+        r"**\1**",
+        text
+    )
 
-    # Clean up excessive whitespace
+    # Convert wiki italics to Discord italics
+    text = re.sub(
+        r"''(.*?)''",
+        r"*\1*",
+        text
+    )
+
+    # Decode HTML entities such as &#8203;
+    text = html.unescape(text)
+
+    # Remove zero-width spaces
+    text = text.replace("\u200b", "")
+
+    # Remove HTML tags
+    text = re.sub(r"<[^>]+>", "", text)
+
+    # Clean up whitespace around blank lines
     text = re.sub(r"\n\s*\n", "\n\n", text)
 
     return text.strip()
+
+def expand_wiki_text(text, page_title=None):
+    if not text:
+        return None
+
+    params = {
+        "action": "expandtemplates",
+        "format": "json",
+        "prop": "wikitext",
+        "text": text
+    }
+
+    if page_title:
+        params["title"] = page_title
+
+    response = requests.get(API_URL, params=params)
+    response.raise_for_status()
+
+    data = response.json()
+
+    return data["expandtemplates"]["wikitext"]
 
 def get_card(card_name):
     params = {
@@ -60,34 +128,38 @@ def get_card(card_name):
     # Get the raw wiki markup
     content = page["revisions"][0]["slots"]["main"]["*"]
 
-    # Extract fields from the Cardtable
-    def get_field(field):
-        match = re.search(
-            rf"\|\s*{re.escape(field)}\s*=\s*(.*)",
-            content
-        )
+    # Parse the Cardtable
+    cardtable = parse_cardtable(content)
 
-        if match:
-            return match.group(1).strip()
+    raw_effect = cardtable.get("engtext")
 
-        return None
+    print("\n============= RAW EFFECT =============")
+    print(raw_effect)
+
+    # Template expand the raw effect
+    formatted_effect = expand_wiki_text(raw_effect, page["title"])
+
+    print("\n============= FORMATTED EFFECT =============")
+    print(formatted_effect)
+
+    # Remove remaining redundant formatting
+    cleaned_effect = clean_wiki_text(formatted_effect)
+
+    print("\n============= CLEANED EFFECT =============")
+    print(cleaned_effect)
+
+    print("\n==========================\n")
 
     card = {
         "name": page["title"],
-        "civilization": get_field("civilization"),
-        "race": get_field("race"),
-        "type": get_field("type"),
-        "cost": get_field("cost"),
-        "power": get_field("power"),
-        # "effect": get_field("engtext")
-        "effect": clean_wiki_text(get_field("engtext")),
-        "image": page.get("original", {}).get("source"),
         "url": page["fullurl"],
+        "image": page.get("original", {}).get("source"),
+        **cardtable,
+        "effect": cleaned_effect,
     }
 
     return card
 
-
 if __name__ == "__main__":
-    card = get_card("Bolshack Dragon")
+    card = get_card("Crystal Lancer")
     print(card)
