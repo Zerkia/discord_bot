@@ -1,12 +1,14 @@
 import asyncio
 import math
 import os
-
 import discord
 import roles
-from components.role_layout import RoleLayout
+
 from discord import app_commands
 from discord.ext import commands, tasks
+from components.role_layout import RoleLayout
+from components.card_layout import create_card_embed
+from duema_api import get_card
 
 from config import APPLICATION_ID, BOT_TOKEN_ID, CHANNEL_ID
 
@@ -78,6 +80,21 @@ async def notification_roles(interaction: discord.Interaction):
     )
 
     await interaction.channel.send(view=view)
+
+# Duel MastersCard Lookup Command
+@bot.tree.command(name="card", description="Look up a Duel Masters card")
+async def card(interaction: discord.Interaction, card_name: str):
+  card = get_card(card_name)
+
+  if card is None:
+      await interaction.response.send_message(
+          f'Could not find a card named "{card_name}".'
+      )
+      return
+
+  embed = create_card_embed(card)
+
+  await interaction.response.send_message(embed=embed)
 
 async def main():
 
